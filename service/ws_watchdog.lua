@@ -36,7 +36,6 @@ end
 
 -- call by ws_gate(handler.message)
 function SOCKET.data(fd, msg)
-    logger.info(SERVICE_NAME, "SOCKET data", "fd: ", fd, "msg: ", msg) 
 	local req = cjson.decode(msg)
 	logger.info(SERVICE_NAME, "SOCKET data", "fd: ", fd, "req: ", req) 
 	if not req.pid then 

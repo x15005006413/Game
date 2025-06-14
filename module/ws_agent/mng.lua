@@ -65,7 +65,7 @@ function _M.login(acc, fd)
 
     -- 数据库加载数据
     -- local uid = db.find_and_create_user(acc)
-    local uid = 1
+    local uid = math.random(10000000,99999999)
     if uid == 0 then 
         _M.close_fd(fd)
         return 
@@ -87,10 +87,9 @@ function _M.login(acc, fd)
 
     -- 加载玩家信息
     -- local userinfo = cache.call_cached("get_userinfo", "user", "user", uid)
-    logger.info(SERVICE_NAME, "Login Success", "acc: ", acc, "fd: ", fd)
+    logger.info(SERVICE_NAME, "Login Success", "acc: ", acc, "fd: ", fd, "uid: ", uid)
 
     local res = {
-        pid = "s2c_login",
         msg = "Login success",
         uid = uid, 
         -- username = userinfo.username, 
@@ -123,7 +122,6 @@ end
 -- c2s_echo
 function RPC.c2s_echo(req, fd, uid)
     local res = {
-        pid = "s2c_echo",
         msg = req.msg, 
         uid = uid,
     }
@@ -143,7 +141,6 @@ end
 function RPC.c2s_get_userinfo(req, fd, uid)
     -- local userinfo = cache.call_cached("get_userinfo", "user", "user", uid)
     local res = {
-        pid = "s2c_get_userinfo",
         -- userinfo = userinfo,
     }
     return res 
@@ -153,7 +150,6 @@ end
 function RPC.c2s_get_username(req, fd, uid)
     local username = _M.get_username(uid)
     local res = {
-        pid = "s2c_get_username",
         username = username
     }
     return res 
@@ -168,7 +164,6 @@ function RPC.c2s_set_username(req, fd, uid)
     end 
 
     local res = {
-        pid = "s2c_set_username",
         msg = msg,
     }
     return res 
@@ -176,7 +171,12 @@ end
 
 function _M.handle_proto(req, fd, uid)
     local f = RPC[req.pid]
+    if not f then 
+        logger.error(SERVICE_NAME, "Unknow proto, fd: ", fd, ", msg: ", req)
+        return
+    end
     local res = f(req, fd, uid)
+    res.pid = req.pid:gsub("^c2s", "s2c")
     return res
 end 
 

@@ -1,0 +1,26 @@
+include "config.path"
+
+-- 启动配置
+thread      = 4
+bootstrap   = "snlua bootstrap"
+start       = "main"
+harbor      = 0
+-- preload = "preload.lua"
+-- daemon = "skynet.pid"
+
+-- debug console
+debug_console_port = 4040
+
+-- log conf
+logger      = "log"
+logservice  = "snlua"
+logpath     = "log"
+logtag      = "game"
+log_level   = "debug"
+-- debug | info | warn | error 
+
+-- watchdog conf 
+ws_watchdog_timeout_auth        = 10 -- 客户端认证超时时长
+ws_watchdog_port                = 8080 -- websocket 端口
+ws_watchdog_max_online_client   = 1024 -- 最大客户端链接数量
+ws_watchdog_protocol            = "ws" -- websocket 协议类型

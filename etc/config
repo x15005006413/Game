@@ -10,3 +10,11 @@ harbor      = 0
 
 -- debug console
 debug_console_port = 4040
+
+-- log conf
+logger      = "log"
+logservice  = "snlua"
+logpath     = "./"
+logtag      = "game"
+log_level   = "debug"
+-- debug | info | warn | error 

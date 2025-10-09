@@ -1,0 +1,12 @@
+include "config.path"
+
+-- 启动配置
+thread      = 4
+bootstrap   = "snlua bootstrap"
+start       = "main"
+harbor      = 0
+-- preload = "preload.lua"
+-- daemon = "skynet.pid"
+
+-- debug console
+debug_console_port = 4040

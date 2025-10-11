@@ -64,7 +64,8 @@ function _M.login(acc, fd)
     assert(not fd2uid[fd], string.format("Already Login. acc: %s, fd: %s", acc, fd))
 
     -- 数据库加载数据
-    local uid = db.find_and_create_user(acc)
+    -- local uid = db.find_and_create_user(acc)
+    local uid = 1
     if uid == 0 then 
         _M.close_fd(fd)
         return 
@@ -85,15 +86,15 @@ function _M.login(acc, fd)
     user.timerid = timerid
 
     -- 加载玩家信息
-    local userinfo = cache.call_cached("get_userinfo", "user", "user", uid)
+    -- local userinfo = cache.call_cached("get_userinfo", "user", "user", uid)
     logger.info(SERVICE_NAME, "Login Success", "acc: ", acc, "fd: ", fd)
 
     local res = {
         msg = "Login success",
-        uid = userinfo.uid, 
-        username = userinfo.username, 
-        lv = userinfo.lv, 
-        exp = userinfo.exp,
+        -- uid = userinfo.uid, 
+        -- username = userinfo.username, 
+        -- lv = userinfo.lv, 
+        -- exp = userinfo.exp,
     }
     return res
 end 

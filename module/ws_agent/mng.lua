@@ -97,7 +97,6 @@ function _M.login(acc, fd)
     logger.info(SERVICE_NAME, "Login Success", "acc: ", acc, "fd: ", fd)
 
     local res = {
-        pid = "s2c_login",
         msg = "Login success",
         uid = userinfo.uid, 
         username = userinfo.username, 
@@ -130,7 +129,6 @@ end
 -- c2s_echo
 function RPC.c2s_echo(req, fd, uid)
     local res = {
-        pid = "s2c_echo",
         msg = req.msg, 
         uid = uid,
     }
@@ -150,7 +148,6 @@ end
 function RPC.c2s_get_userinfo(req, fd, uid)
     local userinfo = cache.call_cached("get_userinfo", "user", "user", uid)
     local res = {
-        pid = "s2c_get_userinfo",
         userinfo = userinfo,
     }
     return res 
@@ -160,7 +157,6 @@ end
 function RPC.c2s_get_username(req, fd, uid)
     local username = _M.get_username(uid)
     local res = {
-        pid = "s2c_get_username",
         username = username
     }
     return res 
@@ -175,16 +171,19 @@ function RPC.c2s_set_username(req, fd, uid)
     end 
 
     local res = {
-        pid = "s2c_set_username",
         msg = msg,
     }
     return res 
 end
 
-function _M.handle_proto(req, fd, uid)
+function _M.handle_proto(req, fd)
     local f = RPC[req.pid]
-    local res = f(req, fd, uid)
+    if not f then
+        return
+    end
+    local res = f(req, fd)
+    res.pid = req.pid:gsub("^c2s", "s2c")
     return res
-end 
+end
 
 return _M 

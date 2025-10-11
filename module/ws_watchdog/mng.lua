@@ -84,8 +84,12 @@ end
 -- 协议根据 pid 执行对应函数
 function _M.handle_proto(req, fd)
     local f = RPC[req.pid]
+    if not f then
+        return
+    end
     local res = f(req, fd)
+    res.pid = req.pid:gsub("^c2s", "s2c")
     return res 
-end 
+end
 
 return _M 

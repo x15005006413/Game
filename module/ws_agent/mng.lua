@@ -2,10 +2,6 @@ local skynet = require "skynet"
 local logger = require "logger"
 local cjson = require "cjson"
 local timer = require "timer"
-local db = require "ws_agent.db"
-local cache = require "cache"
-local gm = require "ws_agent.gm.main"
-local search = require "ws_agent.search"
 
 local WATCHDOG 
 local GATE 
@@ -20,10 +16,6 @@ local online_users = {}  -- uid: user{fd, acc, heartbeat, timerid}
 function _M.init(gate, watchdog)
     GATE = gate 
     WATCHDOG = watchdog
-    db.init()
-    gm.init()
-    _M.register_rpc(gm.RPC)
-    search.init()
 end 
 
 function _M.disconnect(fd)

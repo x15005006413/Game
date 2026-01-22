@@ -1,9 +1,14 @@
 ---
 name: code_review
-type: knowledge
+type: repo
 version: 1.0.0
 agent: CodeActAgent
-triggers: []
+triggers:
+  - git commit
+  - code review
+  - review code
+  - 代码审查
+  - 审查代码
 ---
 
 # Code Review Microagent

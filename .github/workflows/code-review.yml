@@ -1,0 +1,130 @@
+name: Code Review
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '**.lua'
+      - 'etc/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '**.lua'
+      - 'etc/**'
+
+jobs:
+  lua-check:
+    name: Lua Code Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史用于 diff
+
+      - name: Install Lua and Luacheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.3 liblua5.3-dev luarocks
+          sudo luarocks install luacheck
+
+      - name: Run Luacheck
+        run: |
+          luacheck . --config .luacheckrc --no-color || true
+        continue-on-error: true
+
+      - name: Check Lua syntax
+        run: |
+          echo "Checking Lua syntax..."
+          find . -name "*.lua" -not -path "./skynet/*" | while read file; do
+            if ! luac -p "$file" 2>/dev/null; then
+              echo "❌ Syntax error in: $file"
+              luac -p "$file"
+              exit 1
+            fi
+          done
+          echo "✅ All Lua files have valid syntax"
+
+  code-style:
+    name: Code Style Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for common issues
+        run: |
+          echo "🔍 Checking for common code issues..."
+          
+          # 检查是否有调试代码残留
+          echo "Checking for debug code..."
+          if grep -rn "print(" --include="*.lua" --exclude-dir=skynet --exclude-dir=test . | grep -v "logger" | grep -v "dump"; then
+            echo "⚠️ Warning: Found print() statements (consider using logger instead)"
+          fi
+          
+          # 检查是否有 TODO/FIXME
+          echo "Checking for TODO/FIXME comments..."
+          if grep -rn "TODO\|FIXME" --include="*.lua" --exclude-dir=skynet .; then
+            echo "📝 Note: Found TODO/FIXME comments"
+          fi
+          
+          # 检查长行
+          echo "Checking for long lines (>120 chars)..."
+          find . -name "*.lua" -not -path "./skynet/*" -exec awk 'length > 120 {print FILENAME":"NR": line too long ("length" chars)"}' {} \;
+          
+          echo "✅ Code style check completed"
+
+  security-check:
+    name: Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for security issues
+        run: |
+          echo "🔒 Running security checks..."
+          
+          # 检查硬编码的敏感信息
+          echo "Checking for hardcoded secrets..."
+          if grep -rniE "(password|secret|token|api_key)\s*=\s*['\"][^'\"]+['\"]" --include="*.lua" --exclude-dir=skynet --exclude-dir=test .; then
+            echo "⚠️ Warning: Possible hardcoded secrets found"
+          fi
+          
+          # 检查 SQL 注入风险（如果有数据库操作）
+          echo "Checking for potential SQL injection..."
+          if grep -rn "string.format.*SELECT\|string.format.*INSERT\|string.format.*UPDATE\|string.format.*DELETE" --include="*.lua" --exclude-dir=skynet .; then
+            echo "⚠️ Warning: Potential SQL injection risk - use parameterized queries"
+          fi
+          
+          # 检查 os.execute 使用
+          echo "Checking for os.execute usage..."
+          if grep -rn "os.execute\|io.popen" --include="*.lua" --exclude-dir=skynet .; then
+            echo "⚠️ Warning: Found os.execute/io.popen - ensure input is sanitized"
+          fi
+          
+          echo "✅ Security check completed"
+
+  diff-review:
+    name: Review Changes
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Show changed files
+        run: |
+          echo "📋 Changed Lua files in this PR:"
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} -- '*.lua' | head -20
+          
+      - name: Show diff statistics
+        run: |
+          echo "📊 Diff statistics:"
+          git diff --stat ${{ github.event.pull_request.base.sha }} ${{ github.sha }} -- '*.lua'

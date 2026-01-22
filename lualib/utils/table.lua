@@ -36,4 +36,51 @@ function _M.dump(t)
     print()
 end
 
-return _M 
+-- 获取 table 的所有 key 组成的数组
+function _M.klist(t)
+    local keys = {}
+    for k, _ in pairs(t) do
+        table.insert(keys, k)
+    end
+    return keys
+end
+
+-- 获取 table 的所有 value 组成的数组
+function _M.vlist(t)
+    local values = {}
+    for _, v in pairs(t) do
+        table.insert(values, v)
+    end
+    return values
+end
+
+-- 获取 table 的长度（包括非数字 key）
+function _M.size(t)
+    local count = 0
+    for _ in pairs(t) do
+        count = count + 1
+    end
+    return count
+end
+
+-- 深拷贝
+function _M.clone(t)
+    if type(t) ~= "table" then
+        return t
+    end
+    local copy = {}
+    for k, v in pairs(t) do
+        copy[_M.clone(k)] = _M.clone(v)
+    end
+    return copy
+end
+
+-- 合并两个 table
+function _M.merge(t1, t2)
+    for k, v in pairs(t2) do
+        t1[k] = v
+    end
+    return t1
+end
+
+return _M

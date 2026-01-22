@@ -15,6 +15,10 @@ skynet.start(function()
     -- 开启 debug console 服务
     skynet.newservice("debug_console", debug_port)
 
+    -- 开启房间服务
+    local room_service = skynet.newservice("room")
+    skynet.error("[main.lua] room service started")
+
     -- 开启 ws_watchdog 服务
     local ws_watchdog = skynet.newservice("ws_watchdog")
 

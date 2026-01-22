@@ -2,6 +2,7 @@ local skynet = require "skynet"
 local logger = require "logger"
 local cjson = require "cjson"
 local timer = require "timer"
+local room_rpc = require "room.rpc"
 
 local WATCHDOG 
 local GATE 
@@ -16,6 +17,8 @@ local online_users = {}  -- uid: user{fd, acc, heartbeat, timerid}
 function _M.init(gate, watchdog)
     GATE = gate 
     WATCHDOG = watchdog
+    -- 注册房间相关的 RPC
+    _M.register_rpc(room_rpc.get_rpc())
 end 
 
 function _M.disconnect(fd)
@@ -23,6 +26,12 @@ function _M.disconnect(fd)
     if uid then 
         local user = online_users[uid]
         timer.cancel(user.timerid) 
+        
+        -- 通知房间服务玩家断线
+        local room_service = skynet.localname(".room")
+        if room_service then
+            skynet.send(room_service, "lua", "player_disconnect", uid)
+        end
         
         online_users[uid] = nil 
         fd2uid[fd] = nil 
